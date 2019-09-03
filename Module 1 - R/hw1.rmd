@@ -1,0 +1,115 @@
+---
+title: "Data Visualization. Module 1"
+date: "9/1/2019"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+
+I have provided you with data about the 5,000 fastest growing companies in the US, as compiled by Inc. magazine. lets read this in:
+
+```{r}
+
+inc <- read.csv("https://raw.githubusercontent.com/charleyferrari/CUNY_DATA_608/master/module1/Data/inc5000_data.csv", header= TRUE)
+
+```
+
+And lets preview this data:
+
+```{r}
+
+head(inc)
+
+```
+```{r}
+
+summary(inc)
+
+```
+
+Think a bit on what these summaries mean. Use the space below to add some more relevant non-visual exploratory information you think helps you understand this data:
+
+```{r}
+
+str(inc)
+
+```
+
+## Question 1
+
+Create a graph that shows the distribution of companies in the dataset by State (ie how many are in each state). There are a lot of States, so consider which axis you should use. This visualization is ultimately going to be consumed on a 'portrait' oriented screen (ie taller than wide), which should further guide your layout choices.
+
+```{r, message=FALSE, warning = FALSE, fig.height = 8}
+#install.packages("sqldf")
+library(sqldf)
+library(ggplot2)
+q1<-sqldf("select State
+                 ,count(distinct Name) as cnt_names
+          from inc 
+          group by State")
+ggplot(data = q1, aes(x=reorder(State,cnt_names),y = cnt_names))+ 
+  geom_bar(stat="identity", fill="#33CCFF")+
+  geom_text(aes(label=cnt_names), vjust=0.5, size=3, position=position_dodge(width = 2), hjust=0)+
+  theme_minimal()+
+  theme(axis.text.y=element_text(size=9, vjust=0.5))+
+  theme(axis.text.x=element_text(size=12, vjust=0.5))+
+  labs( x="State", y="Number of Companies")+
+  coord_flip()+
+  ggtitle("Distribution of Companies by State")
+
+```
+
+## Quesiton 2
+
+Lets dig in on the state with the 3rd most companies in the data set. Imagine you work for the state and are interested in how many people are employed by companies in different industries. Create a plot that shows the average and/or median employment by industry for companies in this state (only use cases with full data, use R's `complete.cases()` function.) In addition to this, your graph should show how variable the ranges are, and you should deal with outliers.
+
+```{r, fig.height = 7, , fig.weight =10}
+inc_comp<- inc[complete.cases(inc), ] 
+
+q2 <- sqldf("select *from inc_comp where State = 'NY'")
+
+
+ggplot(q2, aes(x=Industry, y=Employees)) + 
+    geom_boxplot(width=.5, fill="#33CCFF", outlier.colour=NA) +
+    stat_summary(aes(colour = "mean"), fun.y = mean, geom="point", fill="red", 
+                 colour="red", shape=21, size=2, show.legend=TRUE) +
+    stat_summary(aes(colour = "median"), fun.y = median, geom="point", fill="blue", 
+                 colour="blue", shape=21, size=2, show.legend=TRUE) +
+    coord_flip(ylim = c(0, 1200), expand = TRUE) +   
+    scale_y_continuous(labels = scales::comma,
+                       breaks = seq(0, 1500, by = 150)) +
+    xlab("Industry") +
+    ylab("Employees per company") +
+    ggtitle("Mean and Median Employment by Industry NY State") + 
+    theme(panel.background = element_blank(), legend.position = "top")
+
+```
+
+## Question 3
+
+Now imagine you work for an investor and want to see which industries generate the most revenue per employee. Create a chart that makes this information clear. Once again, the distribution per industry should be shown.
+
+```{r, fig.height = 7}
+
+q3 <- sqldf("select Industry
+, round(sum(Revenue)/sum(Employees),0) as revenue_per_employee
+              from inc
+group by Industry
+order by sum(Revenue)/sum(Employees) desc")
+
+
+
+ggplot(data = q3, aes(x=reorder(Industry,revenue_per_employee),y = revenue_per_employee))+ 
+  geom_bar(stat="identity",  fill="#33CCFF")+
+  geom_text(aes(label=round(revenue_per_employee, digits=0)), vjust=0.5, size=3, position=position_dodge(width = 1), hjust=0)+
+  theme_minimal()+
+  theme(axis.text.y=element_text(size=12, vjust=0.5))+
+  theme(axis.text.x=element_text(size=12, vjust=0.5))+
+  labs( x="Industry", y="Revenue per employee")+
+  coord_flip()+
+  ggtitle("Distribution of Revenue per Employee by Industry")
+
+```
+
+
