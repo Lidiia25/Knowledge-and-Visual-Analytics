@@ -6,6 +6,7 @@ output:
   html_notebook: default
 ---
 
+http://rpubs.com/lidiia/525968
 
 I have provided you with data about the 5,000 fastest growing companies in the US, as compiled by Inc. magazine. lets read this in:
 
@@ -41,7 +42,7 @@ str(inc)
 Create a graph that shows the distribution of companies in the dataset by State (ie how many are in each state). There are a lot of States, so consider which axis you should use. This visualization is ultimately going to be consumed on a 'portrait' oriented screen (ie taller than wide), which should further guide your layout choices.
 
 ```{r, message=FALSE, warning = FALSE, fig.height = 8}
-#install.packages("sqldf")
+install.packages("sqldf")
 library(sqldf)
 library(ggplot2)
 q1<-sqldf("select State
